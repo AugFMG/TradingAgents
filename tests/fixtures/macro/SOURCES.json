@@ -1,0 +1,122 @@
+{
+  "note": "Reduced official API responses for parser tests; captures are not certified historical vintages.",
+  "sources": {
+    "bis.meta.json": {
+      "name": "bis",
+      "url": "https://stats.bis.org/api/v1/data/WS_CBPOL/M.US+XM+PL?startPeriod=2026-01&format=csv",
+      "status": 200,
+      "retrieved": "2026-11-08T12:45:27.504353+00:00",
+      "bytes": 15007,
+      "body": null
+    },
+    "bls.meta.json": {
+      "name": "bls",
+      "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+      "status": 200,
+      "retrieved": "2026-11-08T12:45:25.870823+00:00",
+      "bytes": 6228,
+      "body": {
+        "seriesid": [
+          "CUUR0000SA0",
+          "LNS14000000",
+          "CES0000000001"
+        ],
+        "startyear": "2025",
+        "endyear": "2026"
+      }
+    },
+    "ecb_rates.meta.json": {
+      "name": "ecb_rates",
+      "url": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR..LEV?startPeriod=2026-10-01&format=csvdata",
+      "status": 200,
+      "retrieved": "2026-11-08T12:45:29.520540+00:00",
+      "bytes": 53098,
+      "body": null
+    },
+    "ecb_yield.meta.json": {
+      "name": "ecb_yield",
+      "url": "https://data-api.ecb.europa.eu/service/data/YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_10Y?startPeriod=2026-10-01&format=csvdata",
+      "status": 200,
+      "retrieved": "2026-11-08T12:45:29.495326+00:00",
+      "bytes": 14897,
+      "body": null
+    },
+    "eurostat_hicp.meta.json": {
+      "name": "eurostat_hicp",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=DE&lastTimePeriod=1&lang=en",
+      "status": 200,
+      "retrieved": "2026-11-08T12:45:28.251978+00:00",
+      "bytes": 42969,
+      "body": null
+    },
+    "nyfed.meta.json": {
+      "name": "nyfed",
+      "url": "https://markets.newyorkfed.org/api/rates/all/search.json?startDate=2026-10-01&endDate=2026-11-08",
+      "status": 200,
+      "retrieved": "2026-11-08T12:45:26.033915+00:00",
+      "bytes": 35418,
+      "body": null
+    },
+    "oecd_fin_data.meta.json": {
+      "name": "oecd_fin_data",
+      "url": "https://sdmx.oecd.org/public/rest/v1/data/OECD.SDD.STES,DSD_STES@DF_FINMARK,4.0/USA+DEU+POL.M.......?startPeriod=2026-09&format=csvfilewithlabels",
+      "status": 200,
+      "retrieved": "2026-11-08T12:46:59.625937+00:00",
+      "bytes": 9376,
+      "body": null
+    },
+    "oecd_prices_data.meta.json": {
+      "name": "oecd_prices_data",
+      "url": "https://sdmx.oecd.org/public/rest/v1/data/OECD.SDD.TPS,DSD_PRICES_COICOP2018@DF_PRICES_C2018_ALL,1.0/USA+DEU+POL.M..CPI.._T.N.GY?startPeriod=2026-08&format=csvfilewithlabels",
+      "status": 200,
+      "retrieved": "2026-11-08T13:02:19.340236+00:00",
+      "bytes": 2979,
+      "body": null
+    },
+    "oecd_prices_old_data.meta.json": {
+      "name": "oecd_prices_old_data",
+      "url": "https://sdmx.oecd.org/public/rest/v1/data/OECD.SDD.TPS,DSD_PRICES@DF_PRICES_ALL,1.0/USA+DEU+POL.M..CPI.._T.N.GY?startPeriod=2026-08&format=csvfilewithlabels",
+      "status": 200,
+      "retrieved": "2026-11-08T13:02:19.269452+00:00",
+      "bytes": 1718,
+      "body": null
+    },
+    "treasuryreal_fixed.meta.json": {
+      "name": "treasuryreal_fixed",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_real_yield_curve&field_tdr_date_value=2026",
+      "status": 200,
+      "retrieved": "2026-11-08T12:47:18.626020+00:00",
+      "bytes": 236304,
+      "body": null
+    },
+    "treasury_fixed.meta.json": {
+      "name": "treasury_fixed",
+      "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=2026",
+      "status": 200,
+      "retrieved": "2026-11-08T12:47:16.401654+00:00",
+      "bytes": 331303,
+      "body": null
+    },
+    "wb.meta.json": {
+      "name": "wb",
+      "url": "https://api.worldbank.org/v2/country/US;PL;DE/indicator/FP.CPI.TOTL.ZG;SL.UEM.TOTL.ZS;FR.INR.LEND?source=2&date=2023:2026&format=json&per_page=1000",
+      "status": 200,
+      "retrieved": "2026-11-08T12:45:30.506823+00:00",
+      "bytes": 6291,
+      "body": null
+    },
+    "wb_meta.meta.json": {
+      "name": "wb_meta",
+      "url": "https://api.worldbank.org/v2/indicator/FP.CPI.TOTL.ZG?format=json",
+      "status": 200,
+      "retrieved": "2026-11-08T12:45:30.528970+00:00",
+      "bytes": 632,
+      "body": null
+    },
+    "eurostat_unemp": {
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m?geo=DE&sex=T&age=TOTAL&s_adj=SA&unit=PC_ACT&sinceTimePeriod=2026-01&lang=en",
+      "retrieved": "2026-11-08",
+      "status": 200
+    }
+  }
+}

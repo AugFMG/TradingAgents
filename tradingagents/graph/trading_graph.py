@@ -259,6 +259,9 @@ class TradingAgentsGraph:
         local paths are never recorded.
         """
         cfg = self.config
+        vendors = dict(cfg.get("data_vendors") or {})
+        if cfg.get("macro_enabled"):
+            vendors["macro_data"] = "multi_source: " + str(cfg.get("macro_providers", ""))
         return {
             "version": tradingagents.__version__,
             "llm_provider": cfg.get("llm_provider"),
@@ -270,7 +273,7 @@ class TradingAgentsGraph:
             "max_debate_rounds": cfg.get("max_debate_rounds"),
             "max_risk_discuss_rounds": cfg.get("max_risk_discuss_rounds"),
             "output_language": cfg.get("output_language"),
-            "data_vendors": dict(cfg.get("data_vendors") or {}),
+            "data_vendors": vendors,
             "tool_vendors": dict(cfg.get("tool_vendors") or {}),
         }
 
@@ -298,13 +301,26 @@ class TradingAgentsGraph:
         and loads them alongside the analysts (see ``_memory_step``).
         """
         trade_date = _validate_trade_date(trade_date)
-        return self.propagator.create_initial_state(
+        state = self.propagator.create_initial_state(
             company_name,
             trade_date,
             asset_type=asset_type,
             instrument_context=self.resolve_instrument_context(company_name, asset_type, trade_date),
             portfolio_context=portfolio.render(company_name) if portfolio is not None else "",
         )
+        if self.config.get("macro_enabled"):
+            from tradingagents.macro.service import collect
+
+            try:
+                snapshot = collect(self.config, trade_date, company_name)
+                state.update(macro_report=snapshot["report"], macro_run_id=snapshot["run_id"], macro_context=snapshot["context"])
+            except Exception as exc:
+                # Persistence/configuration failures must remain visible even
+                # when every market/LLM component is otherwise healthy.
+                state.update(macro_report=f"MACRO_UNAVAILABLE: {type(exc).__name__}. "
+                             "Evidence could not be collected/persisted. Do not invent macro values.", macro_run_id="")
+                logger.exception("Macro collection unavailable")
+        return state
 
     def _memory_step(self, state):
         """The graph's Memory Log step, alongside the analysts (#1428): settle every
@@ -463,6 +479,8 @@ class TradingAgentsGraph:
             "final_trade_decision": final_state["final_trade_decision"],
             "final_rating": run_rating(final_state),
             "run_settings": self.run_settings(),
+            "macro_report": final_state.get("macro_report", ""),
+            "macro_run_id": final_state.get("macro_run_id", ""),
         }
 
         # A ticker that would escape the results directory is rejected.

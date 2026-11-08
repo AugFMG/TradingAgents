@@ -48,6 +48,9 @@ def _header(ticker: str, final_state: dict, settings: dict | None) -> str:
 
 # The report's sections in order: (heading, folder, [(agent, file, state path)]).
 _SECTIONS = (
+    ("Dane makro - źródła, rozbieżności i jakość", "0_macro", (
+        ("Macro evidence", "evidence.md", ("macro_report",)),
+    )),
     ("I. Analyst Team Reports", "1_analysts", (
         ("Market Analyst", "market.md", ("market_report",)),
         ("Sentiment Analyst", "sentiment.md", ("sentiment_report",)),

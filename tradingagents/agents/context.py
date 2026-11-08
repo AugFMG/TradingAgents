@@ -180,11 +180,16 @@ def get_instrument_context_from_state(state: Mapping[str, Any]) -> str:
     """
     context = state.get("instrument_context")
     if isinstance(context, str) and context.strip():
-        return context
-    return build_instrument_context(
-        str(state["company_of_interest"]),
-        state.get("asset_type", "stock"),
-    )
+        result = context
+    else:
+        result = build_instrument_context(
+            str(state["company_of_interest"]),
+            state.get("asset_type", "stock"),
+        )
+    macro = state.get("macro_context") or state.get("macro_report")
+    if macro:
+        result += "\n\nMacro evidence (deterministic, not model estimates):\n"+macro
+    return result
 
 
 def report_or_absent(text: str, source: str) -> str:

@@ -1,3 +1,4 @@
+import json
 import os
 
 _TRADINGAGENTS_HOME = os.path.join(os.path.expanduser("~"), ".tradingagents")
@@ -8,6 +9,15 @@ _TRADINGAGENTS_HOME = os.path.join(os.path.expanduser("~"), ".tradingagents")
 # of the existing default, so users can keep writing plain strings in
 # their .env file.
 _ENV_OVERRIDES = {
+    "TRADINGAGENTS_MACRO_ENABLED": "macro_enabled",
+    "TRADINGAGENTS_MACRO_COUNTRIES": "macro_countries",
+    "TRADINGAGENTS_MACRO_INDICATORS": "macro_indicators",
+    "TRADINGAGENTS_MACRO_PROVIDERS": "macro_providers",
+    "TRADINGAGENTS_MACRO_REFRESH_SECONDS": "macro_refresh_seconds",
+    "TRADINGAGENTS_MACRO_LOOKBACK_DAYS": "macro_lookback_days",
+    "TRADINGAGENTS_MACRO_DB_PATH": "macro_db_path",
+    "TRADINGAGENTS_MACRO_TIMEOUT": "macro_timeout",
+    "TRADINGAGENTS_MACRO_OPTIONS": "macro_options",
     "TRADINGAGENTS_LLM_PROVIDER":         "llm_provider",
     "TRADINGAGENTS_DEEP_THINK_LLM":       "deep_think_llm",
     "TRADINGAGENTS_QUICK_THINK_LLM":      "quick_think_llm",
@@ -58,6 +68,11 @@ def _coerce(value: str, reference):
         return int(value)
     if isinstance(reference, float):
         return float(value)
+    if isinstance(reference, dict):
+        result = json.loads(value)
+        if not isinstance(result, dict):
+            raise ValueError("expected a JSON object")
+        return result
     return value
 
 
@@ -88,6 +103,18 @@ def build_default_config() -> dict:
         # the oldest resolved entries are pruned once this limit is exceeded.
         # Pending entries are never pruned. None disables rotation entirely.
         "memory_log_max_entries": None,
+        # Explicit opt-in preserves existing vendor selections. The workspace
+        # enables this in its ignored .env; no model/provider key is required.
+        "macro_enabled": False,
+        "macro_countries": "US,DE,PL,EA",
+        "macro_indicators": "cpi_index,cpi_yoy,unemployment,employment,effr,sofr,money_market,nominal_yield,real_yield,policy_rate,hicp_yoy,lending_rate",
+        "macro_providers": "bls,nyfed,treasury,oecd,bis,eurostat,ecb,worldbank,fred",
+        "macro_refresh_seconds": {"bls": 21600, "nyfed": 3600, "treasury": 3600, "oecd": 21600,
+                                  "bis": 21600, "eurostat": 21600, "ecb": 3600, "worldbank": 86400, "fred": 3600},
+        "macro_lookback_days": 90,
+        "macro_timeout": 30,
+        "macro_db_path": "",
+        "macro_options": {},
         # LLM settings
         "llm_provider": "openai",
         "deep_think_llm": "gpt-6-sol",

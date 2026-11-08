@@ -244,14 +244,13 @@ def get_macro_indicators(
         int | None, "Trailing window length in days; omit for a 1-year window"
     ] = None,
     trade_date: Annotated[str, InjectedState("trade_date")] = "",
+    state: Annotated[dict, InjectedState] = None,
 ) -> str:
     """
-    Retrieve a macroeconomic indicator time series from FRED (Federal Reserve
-    Economic Data): policy rates, Treasury yields, inflation, labor, and growth,
-    for the US and, through FRED's mirrored series, the euro area.
-    Returns the series title, units, frequency, the latest value, the change
-    over the window, and a recent observation table. Uses the configured
-    macro_data vendor.
+    Retrieve run-scoped macro evidence when multi-source macro is enabled:
+    selected and competing readings, definitions, dates, missing sources and
+    provisional-conflict alerts. Never fill missing observations from model
+    memory. When disabled, uses the legacy configured macro_data vendor.
 
     Args:
         indicator (str): Friendly alias or raw FRED series ID
@@ -261,7 +260,23 @@ def get_macro_indicators(
     Returns:
         str: A formatted markdown report of the macro series
     """
-    return route_to_vendor("get_macro_indicators", indicator, as_of(curr_date, trade_date), look_back_days)
+    effective_date = as_of(curr_date, trade_date)
+    if state and state.get("macro_report"):
+        if state.get("macro_run_id"):
+            from tradingagents.dataflows.config import get_config
+            from tradingagents.macro.service import tool_report
+
+            return tool_report(get_config(), state["macro_run_id"], indicator, effective_date, look_back_days)
+        return state["macro_report"]
+    from tradingagents.dataflows.config import get_config
+
+    config = get_config()
+    if config.get("macro_enabled"):
+        from tradingagents.macro.service import collect, render
+
+        snapshot = collect(config, effective_date, "AD_HOC_TOOL")
+        return render(snapshot, indicator, look_back_days)
+    return route_to_vendor("get_macro_indicators", indicator, effective_date, look_back_days)
 
 
 @tool

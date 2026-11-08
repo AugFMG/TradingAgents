@@ -6,8 +6,10 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse
 
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, AIMessageChunk
+from langchain_core.outputs import ChatGenerationChunk
 from langchain_openai import ChatOpenAI
+from langchain_openai.chat_models.base import _construct_lc_result_from_responses_api
 
 from .api_key_env import get_api_key_env
 from .base_client import BaseLLMClient, normalize_content
@@ -200,6 +202,62 @@ class ChatGPTPlanChatOpenAI(NormalizedChatOpenAI):
             if isinstance(item, dict) and item.get("role") == "system":
                 item["role"] = "developer"
         return payload
+
+    @staticmethod
+    def _completed_plan_response(event):
+        if event.type == "response.completed":
+            return event.response
+        if event.type in ("response.failed", "response.incomplete"):
+            response = event.response
+            raise ValueError(f"ChatGPT response did not complete: {response.error or response.incomplete_details}")
+        if event.type == "error":
+            raise ValueError(f"ChatGPT stream error: {event.code}: {event.message}")
+        return None
+
+    def _plan_response_chunk(self, response, schema=None):
+        if response is None:
+            raise ValueError("ChatGPT stream ended without response.completed")
+        message = _construct_lc_result_from_responses_api(
+            response, schema=schema, output_version=self.output_version,
+        ).generations[0].message
+        return ChatGenerationChunk(message=AIMessageChunk(
+            **message.model_dump(exclude={"type"}), chunk_position="last",
+        ))
+
+    def _stream(self, messages, stop=None, run_manager=None, **kwargs):
+        """Read the required HTTP stream, then emit its authoritative result.
+
+        Some subscription streams send arguments only in done/completed events,
+        without the deltas LangChain's incremental parser expects. Interleaved
+        parallel calls can also separate names from arguments. The completed
+        response contains each call once with its full JSON and usage metadata.
+        Buffering here also prevents tools from running on an incomplete stream.
+        """
+        payload = self._get_request_payload(messages, stop=stop, **{**kwargs, "stream": True})
+        completed = None
+        with self.root_client.responses.create(**payload) as stream:
+            for event in stream:
+                response = self._completed_plan_response(event)
+                if response is not None:
+                    completed = response
+        chunk = self._plan_response_chunk(completed, kwargs.get("response_format"))
+        if run_manager:
+            run_manager.on_llm_new_token(chunk.text, chunk=chunk)
+        yield chunk
+
+    async def _astream(self, messages, stop=None, run_manager=None, **kwargs):
+        payload = self._get_request_payload(messages, stop=stop, **{**kwargs, "stream": True})
+        completed = None
+        stream = await self.root_async_client.responses.create(**payload)
+        async with stream:
+            async for event in stream:
+                response = self._completed_plan_response(event)
+                if response is not None:
+                    completed = response
+        chunk = self._plan_response_chunk(completed, kwargs.get("response_format"))
+        if run_manager:
+            await run_manager.on_llm_new_token(chunk.text, chunk=chunk)
+        yield chunk
 
 
 def _chatgpt_credential() -> Callable[[], str]:
